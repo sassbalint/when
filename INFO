@@ -1,0 +1,155 @@
+
+ - elvek
+
+   ! tegyük egyértelművé, hogy
+     a mise  _kezdetére vonatkoznak az időpontok! (!)
+
+   ! feltettem, hogy a  _negyedóra a legkisebb egység!
+     -> vö: "öt előtt"
+
+   ! MOST = 04-18 = 15; 19-33 = 30; 34-48 = 45; 49-03 = 00
+     -> vö: CAN_BE_LATE
+
+   ?   _ITT_T lehetne  _mindig beg+end párt visszaadni, csak esetleg egybeesik
+      és akkor egy külső fgv, ami ezt átveszi, és kiprinteli,
+      és akkor abba kerülhet a strftime()! (!) XXX :)
+
+---
+
+ - szöveges izék, de szám is működjön
+
+   + öt/5
+
+   + ötkor/5-kor
+
+   + öt/5 órakor
+
+   - ötös/5-ös
+      == 17:00
+
+   + öt/5 körül
+      == 16:30 .. 17:30
+
+   + öt/5 előtt
+      == .. 16:45
+
+   + öt/5 után
+      == 17:15 ..
+
+   + öt/5 óra múlva
+      == MOST+5:00
+
+   + öt/5 órán belül
+      == MOST .. MOST+5:00
+
+   - öt és hat között
+     5 és 6 között
+     5-6 között
+     5 - 6 között
+     5-6
+     5 - 6
+      == 17:00 .. 18:00
+
+   + most
+     mostanában
+      == MOST .. MOST+1:00
+
+   + reggel
+     - reggeli
+      == .. 10:00
+
+   + délben
+     - déli
+      == 11:00 .. 13:00
+
+   + este
+     - esti
+      == 17:00 ..
+
+---
+
+ - minden negyed/fél/háromnegyed órákkal is!
+ ! ez kell! (!)
+
+   - negyed/fél/háromnegyed
+     n/f/h
+     1/4 1/2 3/4
+
+---
+
+ - reggel vs este megtippelése
+ ! ez kell! (!)
+
+   - variálás mínusz 12 órával, ha szükséges
+     1  -> 13
+     2  -> 14
+     3  -> 15
+     4  -> 16
+     5  -> 17
+     6  -> 6 / 18
+     7  -> 7 / 19
+     8  -> 8 / 20
+     9  -> 9 / 21
+     10 -> 10 / 22
+     11 -> 11
+     12 -> 12
+
+   - este 5
+      = 17:00
+
+   - reggel 5
+      = 05:00
+
+   - 13..23 óra is kell -- hátha vki így szereti írni! :)
+
+ ! vagy inkább lehetne azt a (az t1 / t2 esetekben),
+   hogy a most legközelebbi időpontot veszi -- ez kéne!
+
+---
+
+ - napváltás / day change
+   ! ezt nagyon kell kezelni, pl. az éjféli mise miatt, round_to_quarter()
+
+---
+
+ - ami elmúlt azt ne mutassuk,
+   csak ha bepipálja, hogy mindenképp szeretné
+
+---
+
+ - ami már megvan
+   ! ezek már megvannak...
+
+   - egész nap = [nincs constraint, avagy 0:00 .. 24:00]
+     délelőtt = .. 12:00 / du
+     délután = 12:00 .. / de
+
+   ! én így építeném be őket
+     - bár lehet, hogy hagyni kéne, ahogy van,
+       mert megszokták a felhasználók!
+
+   - egész nap: pipa
+
+   - délelőtt
+     de
+      == 8:15 .. 11:45
+
+   - délután
+     du
+      == 12:15 .. 16:45
+
+---
+
+ - tokenizálás hogyan?
+   x első tipp: szóközök törlése -- nem tűnik jónak...
+   ? kell??? mi legyen???
+
+---
+
+ - elírások hogyan?
+   ? hogyan?
+
+---
+
+ !  XXX -ek a scriptben :)
+
