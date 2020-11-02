@@ -7,12 +7,12 @@
    ! feltettem, hogy a  _negyedóra a legkisebb egység!
      -> vö: "öt előtt"
 
-   ! MOST = 04-18 = 15; 19-33 = 30; 34-48 = 45; 49-03 = 00
+   + 04-18 = 15; 19-33 = 30; 34-48 = 45; 49-03 = 00
      -> vö: CAN_BE_LATE
 
-   ?   _ITT_T lehetne  _mindig beg+end párt visszaadni, csak esetleg egybeesik
-      és akkor egy külső fgv, ami ezt átveszi, és kiprinteli,
-      és akkor abba kerülhet a strftime()! (!) XXX :)
+   +  _mindig beg+end párt adok vissza, csak esetleg egybeesik,
+     és akkor egy külső fgv, ami ezt átveszi, és kiprinteli,
+     és akkor abba kerülhet a strftime()! (!) XXX :)
 
 ---
 

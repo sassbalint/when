@@ -8,14 +8,14 @@ Or, as this script currently works only for Hungarian:
 
 
 import argparse
-import datetime
+import datetime as dt
 import sys
 
 
 # If we are late not more than CAN_BE_LATE minutes,
 # it is considered OK :)
 CAN_BE_LATE = 3
-# XXX negative numbers can be used for time to get there :)
+# XXX negative numbers can be used for travel time :)
 
 
 NUMBER_WORDS = {
@@ -35,20 +35,20 @@ NUMBER_WORDS = {
     'tizenkettő': '12'
 }
 
-# XXX another variants is needed: 12 hours subtracted if needed
-NUMBER = {
-    '1': datetime.time(1),
-    '2': datetime.time(2),
-    '3': datetime.time(3),
-    '4': datetime.time(4),
-    '5': datetime.time(5),
-    '6': datetime.time(6),
-    '7': datetime.time(7),
-    '8': datetime.time(8),
-    '9': datetime.time(9),
-    '10': datetime.time(10),
-    '11': datetime.time(11),
-    '12': datetime.time(12)
+# XXX another variant is needed: 12 hours added/subtracted
+NUMBERS = {
+    '1': dt.time(1),
+    '2': dt.time(2),
+    '3': dt.time(3),
+    '4': dt.time(4),
+    '5': dt.time(5),
+    '6': dt.time(6),
+    '7': dt.time(7),
+    '8': dt.time(8),
+    '9': dt.time(9),
+    '10': dt.time(10),
+    '11': dt.time(11),
+    '12': dt.time(12)
 }
 
 
@@ -56,22 +56,22 @@ def add_to_time(start_time, minutes):
     """Add some minutes to a time object."""
     # arithmetic is not supported for datetime.time() objects
     # https://stackoverflow.com/questions/14043934
-    start = datetime.datetime.combine(datetime.date.today(), start_time)
-    stop = start + datetime.timedelta(minutes=minutes)
+    start = dt.datetime.combine(dt.date.today(), start_time)
+    stop = start + dt.timedelta(minutes=minutes)
     stop_time = stop.time()
     return stop_time
 
 
-def round_to_quarter(dt):
+def round_to_quarter(datt):
     """
     Calculate which quarter hour we are in: 0 / 15 / 30 / 45
     Return a modified datetime object.
     Quarter (15 minutes) is the basic time unit.
     CAN_BE_LATE is taken into account.
     """
-    quarter = ((dt.minute + 14 - CAN_BE_LATE) // 15) * 15
+    quarter = ((datt.minute + 14 - CAN_BE_LATE) // 15) * 15
 
-    rhour = dt.hour
+    rhour = datt.hour
     rminute = quarter
 
     if quarter == 60:
@@ -80,31 +80,25 @@ def round_to_quarter(dt):
         rhour += 1
         rminute = 0
 
-    return datetime.datetime(
-        dt.year, dt.month, dt.day, rhour, rminute)
+    return dt.datetime(
+        datt.year, datt.month, datt.day, rhour, rminute)
 
 
 def number_or_number_word(text):
     """Handle numbers and number_words as well."""
     # 1, 2 ...
-    if text in NUMBER:
-        return NUMBER[text]
+    if text in NUMBERS:
+        return NUMBERS[text]
     # egy, kettő ...
     if text in NUMBER_WORDS:
-        return NUMBER[NUMBER_WORDS[text]]
+        return NUMBERS[NUMBER_WORDS[text]]
     # otherwise
     return None
 
 
 def when_interval(text):
     """Take time as text. Return a time interval."""
-    onow = datetime.datetime.now()
-    ohour = onow.hour
-    ominute = onow.minute
-
-    now = round_to_quarter(onow)
-    hour = now.hour
-    minute = now.minute
+    now = round_to_quarter(dt.datetime.now()).time()
 
     # business logic -- how to make it simpler? :)
 
@@ -112,65 +106,59 @@ def when_interval(text):
     text = text.lower()
 
     # -- specific cases
-    # "X / X-es / X órakor / Xkor / X-kor"
+    # "X / X órakor / Xkor / X-kor"
     for pattern in ['', ' órakor', 'kor', '-kor']: # XXX tok?
         # XXX is there a better idea than replace('', '')?
 
-        tmp = text.replace(pattern, '')
-        res = number_or_number_word(tmp)
+        res = number_or_number_word(text.replace(pattern, ''))
         if res is not None:
             return res, res
 
     # "X körül"
-    tmp = text.replace(' körül', '') # XXX tok?
-    res = number_or_number_word(tmp)
+    res = number_or_number_word(text.replace(' körül', '')) # XXX tok?
     if res is not None:
         return add_to_time(res, -30), add_to_time(res, 30)
 
     # "X előtt"
-    tmp = text.replace(' előtt', '') # XXX tok?
-    res = number_or_number_word(tmp)
+    res = number_or_number_word(text.replace(' előtt', '')) # XXX tok?
     if res is not None:
-        return datetime.time(0), add_to_time(res, -15)
+        return dt.time(0), add_to_time(res, -15)
 
     # "X után"
-    tmp = text.replace(' után', '') # XXX tok?
-    res = number_or_number_word(tmp)
+    res = number_or_number_word(text.replace(' után', '')) # XXX tok?
     if res is not None:
         # XXX day change? how?
-        return add_to_time(res, 15), datetime.time(23, 59)
+        return add_to_time(res, 15), dt.time(23, 59)
 
     # "most"
     if text in ["most", "mostanában"]:
-        return now.time(), now.time()
+        return now, add_to_time(now, 60)
 
     # "reggel"
     if text == "reggel":
-        return datetime.time(0), datetime.time(10)
+        return dt.time(0), dt.time(10)
 
     # "délben"
     if text == "délben":
-        return datetime.time(11), datetime.time(13)
+        return dt.time(11), dt.time(13)
 
     # "este"
     if text == "este":
-        return datetime.time(17), datetime.time(23, 59)
+        return dt.time(17), dt.time(23, 59)
 
     # "X óra múlva" (körül!) # XXX körül dupl!!!
-    tmp = text.replace(' óra múlva', '') # XXX tok?
-    res = number_or_number_word(tmp)
+    res = number_or_number_word(text.replace(' óra múlva', '')) # XXX tok?
     if res is not None:
-        cen = add_to_time(now.time(), res.hour * 60)
+        cen = add_to_time(now, res.hour * 60)
         return add_to_time(cen, -15), add_to_time(cen, 15)
 
     # "X órán belül"
-    tmp = text.replace(' órán belül', '') # XXX tok?
-    res = number_or_number_word(tmp)
+    res = number_or_number_word(text.replace(' órán belül', '')) # XXX tok?
     if res is not None:
-        return now.time(), add_to_time(now.time(), res.hour * 60)
+        return now, add_to_time(now, res.hour * 60)
 
     # -- finally if there is no better tip then: now
-    return now.time(), now.time()
+    return now, add_to_time(now, 60)
     # XXX a message linke "NOIDEA!" is needed somehow
 
 
