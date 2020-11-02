@@ -96,8 +96,8 @@ def number_or_number_word(text):
     return None
 
 
-def when(text):
-    """Take time as text. Return time as numbers."""
+def when_interval(text):
+    """Take time as text. Return a time interval."""
     onow = datetime.datetime.now()
     ohour = onow.hour
     ominute = onow.minute
@@ -106,7 +106,7 @@ def when(text):
     hour = now.hour
     minute = now.minute
 
-    # business logic -- how to make it simple? :)
+    # business logic -- how to make it simpler? :)
 
     # -- preprocessing
     text = text.lower()
@@ -114,78 +114,77 @@ def when(text):
     # -- specific cases
     # "X / X-es / X órakor / Xkor / X-kor"
     for pattern in ['', ' órakor', 'kor', '-kor']: # XXX tok?
-        # XXX is there a better idea than replace('', '')
+        # XXX is there a better idea than replace('', '')?
 
         tmp = text.replace(pattern, '')
         res = number_or_number_word(tmp)
-        if res is not None: return res.strftime('%H:%M') # XXX dupl
+        if res is not None:
+            return res, res
 
     # "X körül"
     tmp = text.replace(' körül', '') # XXX tok?
     res = number_or_number_word(tmp)
     if res is not None:
-        beg = add_to_time(res, -30).strftime('%H:%M') # XXX dupl
-        end = add_to_time(res, 30).strftime('%H:%M') # XXX dupl
-        return f'{beg}-{end}'
+        return add_to_time(res, -30), add_to_time(res, 30)
 
     # "X előtt"
     tmp = text.replace(' előtt', '') # XXX tok?
     res = number_or_number_word(tmp)
     if res is not None:
-        beg = datetime.time(0).strftime('%H:%M') # XXX dupl
-        end = add_to_time(res, -15).strftime('%H:%M') # XXX dupl
-        return f'{beg}-{end}'
+        return datetime.time(0), add_to_time(res, -15)
 
     # "X után"
     tmp = text.replace(' után', '') # XXX tok?
     res = number_or_number_word(tmp)
     if res is not None:
-        beg = add_to_time(res, 15).strftime('%H:%M') # XXX dupl
-        end = datetime.time(23, 59).strftime('%H:%M') # XXX dupl
         # XXX day change? how?
-        return f'{beg}-{end}'
+        return add_to_time(res, 15), datetime.time(23, 59)
 
     # "most"
     if text in ["most", "mostanában"]:
-        return now.time().strftime('%H:%M') # XXX dupl
+        return now.time(), now.time()
 
     # "reggel"
     if text == "reggel":
-        beg = datetime.time(0).strftime('%H:%M') # XXX dupl
-        end = datetime.time(10).strftime('%H:%M') # XXX dupl
-        return f'{beg}-{end}'
+        return datetime.time(0), datetime.time(10)
 
     # "délben"
     if text == "délben":
-        beg = datetime.time(11).strftime('%H:%M') # XXX dupl
-        end = datetime.time(13).strftime('%H:%M') # XXX dupl
-        return f'{beg}-{end}'
+        return datetime.time(11), datetime.time(13)
 
     # "este"
     if text == "este":
-        beg = datetime.time(17).strftime('%H:%M') # XXX dupl
-        end = datetime.time(23, 59).strftime('%H:%M') # XXX dupl
-        return f'{beg}-{end}'
+        return datetime.time(17), datetime.time(23, 59)
 
     # "X óra múlva" (körül!) # XXX körül dupl!!!
     tmp = text.replace(' óra múlva', '') # XXX tok?
     res = number_or_number_word(tmp)
     if res is not None:
         cen = add_to_time(now.time(), res.hour * 60)
-        beg = add_to_time(cen, -30).strftime('%H:%M') # XXX dupl
-        end = add_to_time(cen, 30).strftime('%H:%M') # XXX dupl
-        return f'{beg}-{end}'
+        return add_to_time(cen, -15), add_to_time(cen, 15)
 
     # "X órán belül"
     tmp = text.replace(' órán belül', '') # XXX tok?
     res = number_or_number_word(tmp)
     if res is not None:
-        beg = now.time().strftime('%H:%M') # XXX dupl
-        end = add_to_time(now.time(), res.hour * 60).strftime('%H:%M') # XXX dupl
-        return f'{beg}-{end}'
+        return now.time(), add_to_time(now.time(), res.hour * 60)
 
     # -- finally if there is no better tip then: now
-    return f'{hour}:{minute} (<-{ohour}:{ominute} NOIDEA!)'
+    return now.time(), now.time()
+    # XXX a message linke "NOIDEA!" is needed somehow
+
+
+def when(text):
+    """Take time as text. Return time as numbers (in a string)."""
+    beg, end = when_interval(text)
+
+    if beg == end:
+        beg_str = beg.strftime('%H:%M')
+        return f'{beg_str}'
+    else:
+        beg_str = beg.strftime('%H:%M')
+        end_str = end.strftime('%H:%M')
+        return f'{beg_str}-{end_str}'
 
 
 def main():
